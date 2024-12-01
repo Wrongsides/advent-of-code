@@ -1,8 +1,14 @@
-.idea
+__pycache__
+*.bat
+*.jar
+.bin
 .classpath
-.project
+.idea
+.git
 .gradle
+.project
 .settings
 bin
 build
 target
+
