@@ -3,9 +3,12 @@ __pycache__
 *.jar
 .bin
 .classpath
+.clj-kondo
+.cpcache
 .idea
 .git
 .gradle
+.lsp
 .project
 .settings
 bin
