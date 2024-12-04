@@ -13,5 +13,6 @@ __pycache__
 .settings
 bin
 build
+node_modules
 target
 
