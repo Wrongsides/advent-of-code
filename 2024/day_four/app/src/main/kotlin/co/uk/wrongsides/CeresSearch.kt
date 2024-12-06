@@ -1,6 +1,7 @@
 package co.uk.wrongsides
 
 import java.io.InputStreamReader
+import kotlin.collections.indices
 
 class CeresSearch {
 
@@ -25,69 +26,69 @@ class CeresSearch {
         return findXmas()
     }
 
-    fun findXmas(): Int {
+    fun findCrossedMas(): Int {
+        val word = "MAS"
         var count = 0
-
         for (y in grid.indices) {
             for (x in grid[y].indices) {
-                if (horizontalForwards(x, y)) count++
-                if (horizontalBackwards(x, y)) count++
-                if (verticalForwards(x, y)) count++
-                if (verticalBackwards(x, y)) count++
-                if (northEast(x, y)) count++
-                if (northWest(x, y)) count++
-                // if (southEast(x, y)) count++
-                // if (southWest(x, y)) count++
+                if (northEast(x, y, word) && x + 2 <= grid[y].size && northWest(x + 2, y, word))
+                        count++
             }
         }
         return count
     }
 
-    fun horizontalForwards(x: Int, y: Int): Boolean {
-        if (x + 3 >= grid[y].size) return false
-        val word = grid[y].sliceArray(x until x + 4).joinToString("")
-        return "XMAS".equals(word)
+    fun northEast(x: Int, y: Int, word: String = "XMAS"): Boolean {
+        val limit = word.length - 1
+        if (x + limit >= grid[0].size || y - limit < 0) return false
+        val selection = (0..limit).joinToString("") { grid[y - it][x + it].toString() }
+        return selection.equals(word) || selection.equals(word.reversed())
     }
 
-    fun horizontalBackwards(x: Int, y: Int): Boolean {
-        if (x - 3 < 0) return false
-        val word = grid[y].sliceArray(x - 3..x).joinToString("")
-        return "SAMX".equals(word)
+    fun northWest(x: Int, y: Int, word: String = "XMAS"): Boolean {
+        val limit = word.length - 1
+        if (x - limit < 0 || y - limit < 0) return false
+        val selection = (0..limit).joinToString("") { grid[y - it][x - it].toString() }
+        return selection.equals(word) || selection.equals(word.reversed())
     }
 
-    fun verticalForwards(x: Int, y: Int): Boolean {
-        if (y + 3 >= grid.size) return false
-        val word = (0..3).joinToString("") { grid[y + it][x].toString() }
-        return "XMAS".equals(word)
+    fun findXmas(): Int {
+        var count = 0
+
+        for (y in grid.indices) {
+            for (x in grid[y].indices) {
+                if (north(x, y)) count++
+                if (east(x, y)) count++
+                if (south(x, y)) count++
+                if (west(x, y)) count++
+                if (northEast(x, y)) count++
+                if (northWest(x, y)) count++
+            }
+        }
+        return count
     }
 
-    fun verticalBackwards(x: Int, y: Int): Boolean {
+    fun north(x: Int, y: Int): Boolean {
         if (y - 3 < 0) return false
         val word = (0..3).joinToString("") { grid[y - it][x].toString() }
         return "XMAS".equals(word)
     }
 
-    fun northWest(x: Int, y: Int): Boolean {
-        if (x - 3 < 0 || y - 3 < 0) return false
-        val word = (0..3).joinToString("") { grid[y - it][x - it].toString() }
-        return "XMAS".equals(word) || "SAMX".equals(word)
+    fun east(x: Int, y: Int): Boolean {
+        if (x + 3 >= grid[y].size) return false
+        val word = grid[y].sliceArray(x until x + 4).joinToString("")
+        return "XMAS".equals(word)
     }
 
-    fun northEast(x: Int, y: Int): Boolean {
-        if (x + 3 >= grid[0].size || y - 3 < 0) return false
-        val word = (0..3).joinToString("") { grid[y - it][x + it].toString() }
-        return "XMAS".equals(word) || "SAMX".equals(word)
+    fun south(x: Int, y: Int): Boolean {
+        if (y + 3 >= grid.size) return false
+        val word = (0..3).joinToString("") { grid[y + it][x].toString() }
+        return "XMAS".equals(word)
     }
 
-    fun southEast(x: Int, y: Int): Boolean {
-        if (x + 3 >= grid[0].size || y + 3 >= grid.size) return false
-        val word = (0..3).joinToString("") { grid[y + it][x + it].toString() }
-        return "XMAS".equals(word) || "SAMX".equals(word)
-    }
-
-    fun southWest(x: Int, y: Int): Boolean {
-        if (x - 3 < 0 || y + 3 >= grid.size) return false
-        val word = (0..3).joinToString("") { grid[y + it][x - it].toString() }
-        return "XMAS".equals(word) || "SAMX".equals(word)
+    fun west(x: Int, y: Int): Boolean {
+        if (x - 3 < 0) return false
+        val word = grid[y].sliceArray(x - 3..x).joinToString("")
+        return "SAMX".equals(word)
     }
 }
