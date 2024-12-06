@@ -9,11 +9,15 @@ __pycache__
 .git
 .gradle
 .lsp
+.luarocks
 .project
 .settings
 bin
 build
 kls_database
+lua
+lua_modules
+luarocks
 node_modules
 target
 
