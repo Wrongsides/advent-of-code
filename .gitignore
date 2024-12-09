@@ -14,10 +14,10 @@ __pycache__
 .settings
 bin
 build
-kls_database
 lua
 lua_modules
 luarocks
 node_modules
 target
+kls_database.db
 
