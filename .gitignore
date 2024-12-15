@@ -5,6 +5,7 @@ __pycache__
 .classpath
 .clj-kondo
 .cpcache
+.DS_Store
 .idea
 .git
 .gradle

@@ -5,73 +5,111 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GuardGallivant {
 
-    private char direction;
-    private String map;
-    private Map.Entry<Integer, Integer> start;
-    private Map.Entry<Integer, Integer> boundry;
-    private Set<Map.Entry<Integer, Integer>> obsticles = new HashSet<>();
+    private final Coordinate boundary;
+    private final Set<Coordinate> obstacles;
+    private Step start;
 
-    public void read(String input) {
-        this.map = input;
-        this.obsticles = findObsticles();
+    public GuardGallivant(String input) {
+        this.boundary = findBoundary(input);
+        this.obstacles = findObstacles(input);
     }
 
-    public String getMap() {
-        return map;
+    public Step getStart() {
+        return start;
     }
 
-    public Set<Map.Entry<Integer, Integer>> getObsticles() {
-        return obsticles;
+    public Set<Coordinate> getObstacles() {
+        return obstacles;
     }
 
-    private Set<Map.Entry<Integer, Integer>> findObsticles() {
-        Integer x = 0;
-        Integer y = 0;
-        Integer xBoundry = 0;
-        Set<Map.Entry<Integer, Integer>> obsticles = new HashSet<>();
+    public long getPositionCount() {
+        return findPath(start, obstacles).stream().map(Step::coordinate).distinct().count();
+    }
 
-        for (char symbol : getMap().toCharArray()) {
+    public long getLoops() {
+        long loops = 0;
+        Set<Coordinate> pathCoordinates = findPath(start, obstacles).stream()
+                .map(Step::coordinate)
+                .collect(Collectors.toSet());
+
+        for (Coordinate obstacle : pathCoordinates) {
+            Set<Coordinate> extraObstacles = new HashSet<>(obstacles);
+            extraObstacles.add(obstacle);
+
+            if (notStart(obstacle) && inMap(obstacle) && extraObstacles.size() > obstacles.size()) {
+                if (findPath(start, extraObstacles).isEmpty()) {
+                    loops++;
+                }
+            }
+        }
+        return loops;
+    }
+
+    public Set<Step> findPath(Step start, Set<Coordinate> obstacles) {
+        Set<Step> steps = new HashSet<>();
+        Step location = start;
+
+        while (inMap(location.coordinate())) {
+            steps.add(location);
+            char direction = location.direction();
+            if (obstacles.contains(move(location.coordinate(), direction))) {
+                direction = turn(direction);
+            }
+            if (obstacles.contains(move(location.coordinate(), direction))) {
+                direction = turn(direction);
+            }
+            Coordinate next = move(location.coordinate(), direction);
+            location = new Step(next, direction);
+            if (steps.contains(location)) {
+                return Set.of();
+            }
+        }
+        return steps;
+    }
+
+    private boolean notStart(Coordinate step) {
+        return !step.equals(start.coordinate());
+    }
+
+    private boolean inMap(Coordinate coordinate) {
+        return coordinate.x() <= boundary.x() && coordinate.x() >= 0
+                && coordinate.y() <= boundary.y() && coordinate.y() >= 0;
+    }
+
+    private Set<Coordinate> findObstacles(String map) {
+        int x = 0;
+        int y = 0;
+        Set<Coordinate> obstacles = new HashSet<>();
+        for (char symbol : map.toCharArray()) {
             switch (symbol) {
                 case '.' -> x++;
                 case '\n' -> {
                     y++;
-                    xBoundry = x;
                     x = 0;
                 }
                 case '#' -> {
-                    obsticles.add(Map.entry(x, y));
+                    obstacles.add(new Coordinate(x, y));
                     x++;
                 }
                 case '^', 'v', '<', '>' -> {
-                    start = Map.entry(x, y);
-                    direction = symbol;
+                    start = new Step(new Coordinate(x, y), symbol);
                     x++;
                 }
                 default -> throw new RuntimeException("Unknown Symbol");
             }
         }
-        boundry = Map.entry(xBoundry, y);
-        return obsticles;
+        return obstacles;
     }
 
-    public Integer getPositionCount() {
-        Set<Map.Entry<Integer, Integer>> positions = new HashSet<>();
-        Map.Entry<Integer, Integer> location = start;
-
-        while (location.getKey() <= boundry.getKey() && location.getKey() >= 0
-                && location.getValue() <= boundry.getValue() && location.getValue() >= 0) {
-            positions.add(location);
-            if (obsticles.contains(move(direction, location))) {
-                direction = turn(direction);
-            }
-            location = move(direction, location);
-        }
-        return positions.size();
+    private Coordinate findBoundary(String map) {
+        String[] rows = map.split("\n");
+        char[] columns = rows[0].toCharArray();
+        return new Coordinate(columns.length - 1, rows.length - 1);
     }
 
     private char turn(char direction) {
@@ -84,23 +122,23 @@ public class GuardGallivant {
         };
     }
 
-    private Map.Entry<Integer, Integer> move(char direction, Map.Entry<Integer, Integer> location) {
+    private Coordinate move(Coordinate location, char direction) {
         return switch (direction) {
-            case '^' -> Map.entry(location.getKey(), location.getValue() - 1);
-            case '>' -> Map.entry(location.getKey() + 1, location.getValue());
-            case 'v' -> Map.entry(location.getKey(), location.getValue() + 1);
-            case '<' -> Map.entry(location.getKey() - 1, location.getValue());
+            case '^' -> new Coordinate(location.x(), location.y() - 1);
+            case '>' -> new Coordinate(location.x() + 1, location.y());
+            case 'v' -> new Coordinate(location.x(), location.y() + 1);
+            case '<' -> new Coordinate(location.x() - 1, location.y());
             default -> throw new RuntimeException("Unknown direction");
         };
     }
 
-    public String readFile(String filename) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
+    public static String readFile(String filename) throws IOException {
+        ClassLoader classLoader = GuardGallivant.class.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream(filename);
         return readFromInputStream(inputStream);
     }
 
-    private String readFromInputStream(InputStream inputStream) throws IOException {
+    private static String readFromInputStream(InputStream inputStream) throws IOException {
         StringBuilder resultStringBuilder = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
