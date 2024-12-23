@@ -68,4 +68,36 @@ class BridgeRepairTest < Minitest::Test
 
     assert_equal 1582598718861, result
   end
+
+  def test_valid_calibrations_with_concatenation_are_summed
+    bridge = BridgeRepair.new("190: 10 19
+                               3267: 81 40 27
+                               83: 17 5
+                               156: 15 6
+                               7290: 6 8 6 15
+                               161011: 16 10 13
+                               192: 17 8 14
+                               21037: 9 7 18 13
+                               292: 11 6 16 20")
+
+    result = bridge.sum_calibrations_with_concatonation
+
+    assert_equal 11387, result
+  end
+
+  def test_must_use_all_values_to_be_valid
+    bridge = BridgeRepair.new("100: 50 10 10")
+
+    result = bridge.sum_calibrations_with_concatonation
+
+    assert_equal 0, result
+  end
+
+  def test_valid_calibrations_with_concat_from_file
+    bridge = BridgeRepair.new(File.read("app/input"))
+
+    result = bridge.sum_calibrations_with_concatonation
+
+    assert_equal 165278151522644, result
+  end
 end
